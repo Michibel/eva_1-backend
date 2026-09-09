@@ -1,118 +1,329 @@
 <!-- templates/academic/courses.html -->
-<!-- Página que muestra el listado de cursos -->
-<!-- Extiende base.html y usa fetch() para consumir la API -->
+<!-- Página de gestión de cursos con CRUD completo -->
 
 {% extends 'academic/base.html' %}
 
 {% block content %}
-<h2 class="mb-4">📚 Lista de Cursos</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📚 Gestión de Cursos</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+        <i class="fas fa-plus"></i> Nuevo Curso
+    </button>
+</div>
 
-<!-- Tabla para mostrar los cursos -->
+<!-- Tabla de cursos -->
 <table class="table table-striped table-bordered" id="courses-table">
-    <!-- Cabecera de la tabla -->
     <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Nombre del Curso</th>
             <th>Profesor</th>
+            <th>Acciones</th>
         </tr>
     </thead>
-    <!-- Cuerpo de la tabla (llenado dinámicamente con JS) -->
     <tbody id="courses-list">
-        <!-- Mensaje de carga mientras se obtienen los datos -->
         <tr>
-            <td colspan="3" class="text-center">⏳ Cargando datos...</td>
+            <td colspan="4" class="text-center">⏳ Cargando datos...</td>
         </tr>
     </tbody>
 </table>
 
 <!-- ============================================ -->
-<!-- JAVASCRIPT: Consumo de la API con fetch() -->
+<!-- MODAL: CREAR CURSO -->
+<!-- ============================================ -->
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCourseForm">
+                    <div class="mb-3">
+                        <label for="createCourseName" class="form-label">Nombre del Curso</label>
+                        <input type="text" class="form-control" id="createCourseName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createCourseTeacher" class="form-label">Profesor</label>
+                        <select class="form-control" id="createCourseTeacher" required>
+                            <option value="">Seleccione un profesor...</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="saveCourseBtn">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: EDITAR CURSO -->
+<!-- ============================================ -->
+<div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseForm">
+                    <input type="hidden" id="editCourseId">
+                    <div class="mb-3">
+                        <label for="editCourseName" class="form-label">Nombre del Curso</label>
+                        <input type="text" class="form-control" id="editCourseName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCourseTeacher" class="form-label">Profesor</label>
+                        <select class="form-control" id="editCourseTeacher" required>
+                            <option value="">Seleccione un profesor...</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="updateCourseBtn">
+                    <i class="fas fa-save"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: CONFIRMAR ELIMINACIÓN -->
+<!-- ============================================ -->
+<div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">⚠️ Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar el curso <strong id="deleteCourseName"></strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteCourseBtn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT: CRUD COMPLETO -->
 <!-- ============================================ -->
 <script>
-    /**
-     * Función asíncrona que carga los cursos desde la API
-     * Usa fetch() para hacer una petición GET al endpoint /api/courses/
-     * Renderiza los datos en la tabla HTML
-     */
-    async function loadCourses() {
-        // Obtener referencia al cuerpo de la tabla
-        const tbody = document.getElementById('courses-list');
-        
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let currentDeleteCourseId = null;
+    let teachersList = [];
+
+    // ============================================
+    // FUNCIÓN: CARGAR PROFESORES PARA SELECTS
+    // ============================================
+    async function loadTeachersForSelects() {
         try {
-            // ============================================
-            // PASO 1: Hacer la petición a la API
-            // ============================================
-            // fetch() realiza una petición HTTP asíncrona
-            // await espera la respuesta antes de continuar
+            const response = await fetch('/api/teachers/');
+            if (!response.ok) throw new Error('Error al cargar profesores');
+            teachersList = await response.json();
+            
+            // Llenar selects
+            const selects = ['createCourseTeacher', 'editCourseTeacher'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                // Mantener el primer elemento (Seleccione...)
+                const firstOption = select.options[0];
+                select.innerHTML = '';
+                select.appendChild(firstOption);
+                
+                teachersList.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = `${teacher.first_name} ${teacher.last_name}`;
+                    select.appendChild(option);
+                });
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // ============================================
+    // FUNCIÓN: CARGAR CURSOS
+    // ============================================
+    async function loadCourses() {
+        const tbody = document.getElementById('courses-list');
+        try {
             const response = await fetch('/api/courses/');
-            
-            // Verificar si la respuesta fue exitosa (código 200-299)
-            if (!response.ok) {
-                // Si hay error, lanzar una excepción
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // ============================================
-            // PASO 2: Convertir la respuesta a JSON
-            // ============================================
-            // response.json() convierte el body de la respuesta en un objeto JavaScript
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
             const courses = await response.json();
-            
-            // ============================================
-            // PASO 3: Limpiar el mensaje de "Cargando..."
-            // ============================================
+
             tbody.innerHTML = '';
-            
-            // ============================================
-            // PASO 4: Verificar si hay datos
-            // ============================================
+
             if (courses.length === 0) {
-                // Mostrar mensaje si no hay cursos
-                tbody.innerHTML = `<tr><td colspan="3" class="text-center">No hay cursos disponibles.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay cursos disponibles.</td></tr>`;
                 return;
             }
-            
-            // ============================================
-            // PASO 5: Renderizar cada curso en la tabla
-            // ============================================
-            // forEach() itera sobre cada elemento del array
+
             courses.forEach(course => {
-                // createElement() crea un nuevo elemento HTML
                 const row = document.createElement('tr');
-                
-                // innerHTML define el contenido HTML de la fila
-                // Template literals (``) permiten interpolar variables
                 row.innerHTML = `
                     <td>${course.id}</td>
                     <td>${course.name}</td>
                     <td>${course.teacher_name || 'Sin asignar'}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-edit" onclick="openEditCourse(${course.id}, '${course.name}', ${course.teacher})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-delete" onclick="openDeleteCourse(${course.id}, '${course.name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 `;
-                
-                // appendChild() agrega la fila al cuerpo de la tabla
                 tbody.appendChild(row);
             });
-            
         } catch (error) {
-            // ============================================
-            // PASO 6: Manejo de errores
-            // ============================================
-            // Si ocurre algún error, mostrar mensaje en la tabla
-            console.error('Error al cargar los cursos:', error);
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-danger">
-                        ❌ Error al cargar los datos. Intente nuevamente.
-                    </td>
-                </tr>
-            `;
+            console.error('Error:', error);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">❌ Error al cargar los datos.</td></tr>`;
         }
     }
-    
+
     // ============================================
-    // EJECUTAR LA FUNCIÓN CUANDO LA PÁGINA CARGUE
+    // FUNCIÓN: CREAR CURSO
     // ============================================
-    // DOMContentLoaded: Evento que se dispara cuando el DOM está completamente cargado
-    document.addEventListener('DOMContentLoaded', loadCourses);
+    document.getElementById('saveCourseBtn').addEventListener('click', async function() {
+        const name = document.getElementById('createCourseName').value.trim();
+        const teacherId = document.getElementById('createCourseTeacher').value;
+
+        if (!name || !teacherId) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/courses/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
+            });
+
+            if (!response.ok) throw new Error('Error al crear el curso');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
+            modal.hide();
+
+            document.getElementById('createCourseName').value = '';
+            document.getElementById('createCourseTeacher').value = '';
+
+            await loadCourses();
+            showToast('✅ Curso creado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al crear el curso.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
+    // ============================================
+    function openEditCourse(id, name, teacherId) {
+        document.getElementById('editCourseId').value = id;
+        document.getElementById('editCourseName').value = name;
+        document.getElementById('editCourseTeacher').value = teacherId;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ACTUALIZAR CURSO
+    // ============================================
+    document.getElementById('updateCourseBtn').addEventListener('click', async function() {
+        const id = document.getElementById('editCourseId').value;
+        const name = document.getElementById('editCourseName').value.trim();
+        const teacherId = document.getElementById('editCourseTeacher').value;
+
+        if (!name || !teacherId) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/courses/${id}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar el curso');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
+            modal.hide();
+
+            await loadCourses();
+            showToast('✅ Curso actualizado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al actualizar el curso.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
+    // ============================================
+    function openDeleteCourse(id, name) {
+        currentDeleteCourseId = id;
+        document.getElementById('deleteCourseName').textContent = name;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ELIMINAR CURSO
+    // ============================================
+    document.getElementById('confirmDeleteCourseBtn').addEventListener('click', async function() {
+        if (!currentDeleteCourseId) return;
+
+        try {
+            const response = await fetch(`/api/courses/${currentDeleteCourseId}/`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Error al eliminar el curso');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal'));
+            modal.hide();
+
+            await loadCourses();
+            showToast('✅ Curso eliminado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al eliminar el curso.', 'success');
+        }
+    });
+
+    // ============================================
+    // INICIALIZAR
+    // ============================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadTeachersForSelects();
+        await loadCourses();
+    });
 </script>
 {% endblock %}

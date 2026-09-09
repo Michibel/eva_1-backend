@@ -1,13 +1,17 @@
 <!-- templates/academic/students.html -->
-<!-- Página que muestra el listado de estudiantes -->
-<!-- Extiende base.html y usa fetch() para consumir múltiples endpoints -->
+<!-- Página de gestión de estudiantes con CRUD completo -->
 
 {% extends 'academic/base.html' %}
 
 {% block content %}
-<h2 class="mb-4">👨‍🎓 Lista de Estudiantes</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>👨‍🎓 Gestión de Estudiantes</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createStudentModal">
+        <i class="fas fa-plus"></i> Nuevo Estudiante
+    </button>
+</div>
 
-<!-- Tabla para mostrar los estudiantes -->
+<!-- Tabla de estudiantes -->
 <table class="table table-striped table-bordered" id="students-table">
     <thead class="table-dark">
         <tr>
@@ -15,119 +19,300 @@
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Cursos Inscritos</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody id="students-list">
         <tr>
-            <td colspan="4" class="text-center">⏳ Cargando datos...</td>
+            <td colspan="5" class="text-center">⏳ Cargando datos...</td>
         </tr>
     </tbody>
 </table>
 
 <!-- ============================================ -->
-<!-- JAVASCRIPT: Consumo de la API con fetch() -->
+<!-- MODAL: CREAR ESTUDIANTE -->
+<!-- ============================================ -->
+<div class="modal fade" id="createStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createStudentForm">
+                    <div class="mb-3">
+                        <label for="createStudentFirstName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="createStudentFirstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createStudentLastName" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="createStudentLastName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="saveStudentBtn">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: EDITAR ESTUDIANTE -->
+<!-- ============================================ -->
+<div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editStudentForm">
+                    <input type="hidden" id="editStudentId">
+                    <div class="mb-3">
+                        <label for="editStudentFirstName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="editStudentFirstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStudentLastName" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="editStudentLastName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="updateStudentBtn">
+                    <i class="fas fa-save"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: CONFIRMAR ELIMINACIÓN -->
+<!-- ============================================ -->
+<div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">⚠️ Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar al estudiante <strong id="deleteStudentName"></strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT: CRUD COMPLETO -->
 <!-- ============================================ -->
 <script>
-    /**
-     * Función asíncrona que carga estudiantes y sus inscripciones
-     * Consulta 3 endpoints para obtener datos relacionados:
-     *   1. /api/students/     - Lista de estudiantes
-     *   2. /api/courses/      - Lista de cursos (para nombres)
-     *   3. /api/enrollments/  - Lista de inscripciones
-     */
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let currentDeleteStudentId = null;
+
+    // ============================================
+    // FUNCIÓN: CARGAR ESTUDIANTES
+    // ============================================
     async function loadStudents() {
         const tbody = document.getElementById('students-list');
-        
         try {
-            // ============================================
-            // PASO 1: Obtener datos de estudiantes
-            // ============================================
+            // Obtener estudiantes
             const responseStudents = await fetch('/api/students/');
-            if (!responseStudents.ok) throw new Error(`Error students: ${responseStudents.status}`);
+            if (!responseStudents.ok) throw new Error(`Error: ${responseStudents.status}`);
             const students = await responseStudents.json();
-            
-            // ============================================
-            // PASO 2: Obtener datos de cursos
-            // ============================================
+
+            // Obtener cursos e inscripciones para mostrar los cursos inscritos
             const responseCourses = await fetch('/api/courses/');
-            if (!responseCourses.ok) throw new Error(`Error courses: ${responseCourses.status}`);
-            const courses = await responseCourses.json();
-            
-            // ============================================
-            // PASO 3: Obtener datos de inscripciones
-            // ============================================
             const responseEnrollments = await fetch('/api/enrollments/');
-            if (!responseEnrollments.ok) throw new Error(`Error enrollments: ${responseEnrollments.status}`);
-            const enrollments = await responseEnrollments.json();
             
-            // ============================================
-            // PASO 4: Crear un mapa de cursos (ID -> Nombre)
-            // ============================================
-            // Los mapas (objetos) permiten búsquedas rápidas por clave
+            const courses = await responseCourses.json();
+            const enrollments = await responseEnrollments.json();
+
+            // Crear mapas
             const coursesMap = {};
             courses.forEach(course => {
                 coursesMap[course.id] = course.name;
             });
-            
-            // ============================================
-            // PASO 5: Crear un mapa de inscripciones (Estudiante -> Lista de cursos)
-            // ============================================
+
             const enrollmentsMap = {};
             enrollments.forEach(enrollment => {
                 const studentId = enrollment.student;
-                // Obtener nombre del curso usando el mapa
                 const courseName = coursesMap[enrollment.course] || 'Curso desconocido';
-                
-                // Si el estudiante no tiene un array, crearlo
                 if (!enrollmentsMap[studentId]) {
                     enrollmentsMap[studentId] = [];
                 }
-                // Agregar el curso a la lista del estudiante
                 enrollmentsMap[studentId].push(courseName);
             });
-            
-            // ============================================
-            // PASO 6: Limpiar la tabla
-            // ============================================
+
             tbody.innerHTML = '';
-            
-            // Verificar si hay estudiantes
+
             if (students.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay estudiantes disponibles.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay estudiantes disponibles.</td></tr>`;
                 return;
             }
-            
-            // ============================================
-            // PASO 7: Renderizar cada estudiante
-            // ============================================
+
             students.forEach(student => {
-                // Obtener cursos del estudiante (o array vacío si no tiene)
                 const coursesList = enrollmentsMap[student.id] || ['Sin cursos'];
-                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${student.id}</td>
                     <td>${student.first_name}</td>
                     <td>${student.last_name}</td>
                     <td>${coursesList.join(', ')}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-edit" onclick="openEditStudent(${student.id}, '${student.first_name}', '${student.last_name}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-delete" onclick="openDeleteStudent(${student.id}, '${student.first_name} ${student.last_name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
-            
         } catch (error) {
-            // Manejo de errores
             console.error('Error:', error);
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center text-danger">
-                        ❌ Error al cargar los datos. Intente nuevamente.
-                    </td>
-                </tr>
-            `;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">❌ Error al cargar los datos.</td></tr>`;
         }
     }
-    
-    // Ejecutar la función cuando la página cargue
+
+    // ============================================
+    // FUNCIÓN: CREAR ESTUDIANTE
+    // ============================================
+    document.getElementById('saveStudentBtn').addEventListener('click', async function() {
+        const firstName = document.getElementById('createStudentFirstName').value.trim();
+        const lastName = document.getElementById('createStudentLastName').value.trim();
+
+        if (!firstName || !lastName) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/students/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName })
+            });
+
+            if (!response.ok) throw new Error('Error al crear el estudiante');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createStudentModal'));
+            modal.hide();
+
+            document.getElementById('createStudentFirstName').value = '';
+            document.getElementById('createStudentLastName').value = '';
+
+            await loadStudents();
+            showToast('✅ Estudiante creado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al crear el estudiante.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
+    // ============================================
+    function openEditStudent(id, firstName, lastName) {
+        document.getElementById('editStudentId').value = id;
+        document.getElementById('editStudentFirstName').value = firstName;
+        document.getElementById('editStudentLastName').value = lastName;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ACTUALIZAR ESTUDIANTE
+    // ============================================
+    document.getElementById('updateStudentBtn').addEventListener('click', async function() {
+        const id = document.getElementById('editStudentId').value;
+        const firstName = document.getElementById('editStudentFirstName').value.trim();
+        const lastName = document.getElementById('editStudentLastName').value.trim();
+
+        if (!firstName || !lastName) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/students/${id}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName })
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar el estudiante');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
+            modal.hide();
+
+            await loadStudents();
+            showToast('✅ Estudiante actualizado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al actualizar el estudiante.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
+    // ============================================
+    function openDeleteStudent(id, name) {
+        currentDeleteStudentId = id;
+        document.getElementById('deleteStudentName').textContent = name;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteStudentModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ELIMINAR ESTUDIANTE
+    // ============================================
+    document.getElementById('confirmDeleteStudentBtn').addEventListener('click', async function() {
+        if (!currentDeleteStudentId) return;
+
+        try {
+            const response = await fetch(`/api/students/${currentDeleteStudentId}/`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Error al eliminar el estudiante');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteStudentModal'));
+            modal.hide();
+
+            await loadStudents();
+            showToast('✅ Estudiante eliminado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al eliminar el estudiante.', 'error');
+        }
+    });
+
+    // ============================================
+    // INICIALIZAR
+    // ============================================
     document.addEventListener('DOMContentLoaded', loadStudents);
 </script>
 {% endblock %}

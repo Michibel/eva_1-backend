@@ -44,8 +44,8 @@
   {
     "model": "academic.student",
     "fields": {
-      "first_name": "Juan",
-      "last_name": "Pérez"
+      "first_name": "Gabriel",
+      "last_name": "Martel"
     }
   },
   {

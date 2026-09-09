@@ -1,0 +1,314 @@
+<!-- templates/academic/teachers.html -->
+<!-- Página de gestión de profesores con CRUD completo -->
+
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>👨‍🏫 Gestión de Profesores</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createTeacherModal">
+        <i class="fas fa-plus"></i> Nuevo Profesor
+    </button>
+</div>
+
+<!-- Tabla de profesores -->
+<table class="table table-striped table-bordered" id="teachers-table">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="teachers-list">
+        <tr>
+            <td colspan="4" class="text-center">⏳ Cargando datos...</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ============================================ -->
+<!-- MODAL: CREAR PROFESOR -->
+<!-- ============================================ -->
+<div class="modal fade" id="createTeacherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Profesor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeacherForm">
+                    <div class="mb-3">
+                        <label for="createFirstName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="createFirstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createLastName" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="createLastName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="saveTeacherBtn">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: EDITAR PROFESOR -->
+<!-- ============================================ -->
+<div class="modal fade" id="editTeacherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Profesor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTeacherForm">
+                    <input type="hidden" id="editTeacherId">
+                    <div class="mb-3">
+                        <label for="editFirstName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="editFirstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLastName" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="editLastName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="updateTeacherBtn">
+                    <i class="fas fa-save"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: CONFIRMAR ELIMINACIÓN -->
+<!-- ============================================ -->
+<div class="modal fade" id="deleteTeacherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">⚠️ Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar al profesor <strong id="deleteTeacherName"></strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- JAVASCRIPT: CRUD COMPLETO -->
+<!-- ============================================ -->
+<script>
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let currentDeleteId = null;
+
+    // ============================================
+    // FUNCIÓN: CARGAR PROFESORES
+    // ============================================
+    async function loadTeachers() {
+        const tbody = document.getElementById('teachers-list');
+        try {
+            const response = await fetch('/api/teachers/');
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
+            const teachers = await response.json();
+
+            tbody.innerHTML = '';
+
+            if (teachers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay profesores disponibles.</td></tr>`;
+                return;
+            }
+
+            teachers.forEach(teacher => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${teacher.id}</td>
+                    <td>${teacher.first_name}</td>
+                    <td>${teacher.last_name}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-edit" onclick="openEditTeacher(${teacher.id}, '${teacher.first_name}', '${teacher.last_name}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-delete" onclick="openDeleteTeacher(${teacher.id}, '${teacher.first_name} ${teacher.last_name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">❌ Error al cargar los datos.</td></tr>`;
+        }
+    }
+
+    // ============================================
+    // FUNCIÓN: CREAR PROFESOR
+    // ============================================
+    document.getElementById('saveTeacherBtn').addEventListener('click', async function() {
+        const firstName = document.getElementById('createFirstName').value.trim();
+        const lastName = document.getElementById('createLastName').value.trim();
+
+        if (!firstName || !lastName) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/teachers/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName })
+            });
+
+            if (!response.ok) throw new Error('Error al crear el profesor');
+
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createTeacherModal'));
+            modal.hide();
+
+            // Limpiar formulario
+            document.getElementById('createFirstName').value = '';
+            document.getElementById('createLastName').value = '';
+
+            // Recargar tabla
+            await loadTeachers();
+            showToast('✅ Profesor creado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al crear el profesor.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
+    // ============================================
+    function openEditTeacher(id, firstName, lastName) {
+        document.getElementById('editTeacherId').value = id;
+        document.getElementById('editFirstName').value = firstName;
+        document.getElementById('editLastName').value = lastName;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editTeacherModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ACTUALIZAR PROFESOR
+    // ============================================
+    document.getElementById('updateTeacherBtn').addEventListener('click', async function() {
+        const id = document.getElementById('editTeacherId').value;
+        const firstName = document.getElementById('editFirstName').value.trim();
+        const lastName = document.getElementById('editLastName').value.trim();
+
+        if (!firstName || !lastName) {
+            showToast('Por favor, completa todos los campos.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/teachers/${id}/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ first_name: firstName, last_name: lastName })
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar el profesor');
+
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editTeacherModal'));
+            modal.hide();
+
+            // Recargar tabla
+            await loadTeachers();
+            showToast('✅ Profesor actualizado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al actualizar el profesor.', 'error');
+        }
+    });
+
+    // ============================================
+    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
+    // ============================================
+    function openDeleteTeacher(id, name) {
+        currentDeleteId = id;
+        document.getElementById('deleteTeacherName').textContent = name;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteTeacherModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // FUNCIÓN: ELIMINAR PROFESOR
+    // ============================================
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (!currentDeleteId) return;
+
+        try {
+            const response = await fetch(`/api/teachers/${currentDeleteId}/`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) throw new Error('Error al eliminar el profesor');
+
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteTeacherModal'));
+            modal.hide();
+
+            // Recargar tabla
+            await loadTeachers();
+            showToast('✅ Profesor eliminado exitosamente.', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('❌ Error al eliminar el profesor.', 'error');
+        }
+    });
+
+    // ============================================
+    // EVENTO: ENTER PARA CREAR/EDITAR
+    // ============================================
+    document.getElementById('createFirstName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('saveTeacherBtn').click();
+    });
+    document.getElementById('createLastName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('saveTeacherBtn').click();
+    });
+    document.getElementById('editFirstName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('updateTeacherBtn').click();
+    });
+    document.getElementById('editLastName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('updateTeacherBtn').click();
+    });
+
+    // ============================================
+    // INICIALIZAR
+    // ============================================
+    document.addEventListener('DOMContentLoaded', loadTeachers);
+</script>
+{% endblock %}

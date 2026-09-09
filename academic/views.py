@@ -1,10 +1,10 @@
 # academic/views.py
-# Vistas del proyecto: API (DRF) y Web (HTML)
+# Vistas del proyecto con todas las páginas
 
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Teacher, Student, Course, StudentCourse
-from .serializer import (
+from .serializers import (
     TeacherSerializer, 
     StudentSerializer, 
     CourseSerializer, 
@@ -16,43 +16,25 @@ from .serializer import (
 # ============================================
 
 class TeacherViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para el modelo Teacher
-    Proporciona endpoints CRUD para profesores
-    Endpoints generados:
-        - GET /api/teachers/         -> Lista todos los profesores
-        - POST /api/teachers/        -> Crea un nuevo profesor
-        - GET /api/teachers/{id}/    -> Obtiene un profesor específico
-        - PUT /api/teachers/{id}/    -> Actualiza un profesor
-        - DELETE /api/teachers/{id}/ -> Elimina un profesor
-    """
-    queryset = Teacher.objects.all()  # Consulta a la base de datos
-    serializer_class = TeacherSerializer  # Serializador a usar
+    """CRUD completo para profesores"""
+    queryset = Teacher.objects.all()
+    serializer_class = TeacherSerializer
 
 
 class StudentViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para el modelo Student
-    Proporciona endpoints CRUD para estudiantes
-    """
+    """CRUD completo para estudiantes"""
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para el modelo Course
-    Proporciona endpoints CRUD para cursos
-    """
+    """CRUD completo para cursos"""
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
 
 class StudentCourseViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para el modelo StudentCourse
-    Proporciona endpoints CRUD para inscripciones
-    """
+    """CRUD completo para inscripciones"""
     queryset = StudentCourse.objects.all()
     serializer_class = StudentCourseSerializer
 
@@ -62,27 +44,20 @@ class StudentCourseViewSet(viewsets.ModelViewSet):
 # ============================================
 
 def home_view(request):
-    """
-    Vista para la página de inicio (home)
-    Renderiza la plantilla base con el menú de navegación
-    URL: /
-    """
+    """Página de inicio"""
     return render(request, 'academic/base.html')
 
 
+def teachers_view(request):
+    """Página de gestión de profesores con CRUD"""
+    return render(request, 'academic/teachers.html')
+
+
 def courses_view(request):
-    """
-    Vista para la página de cursos
-    Renderiza la plantilla que muestra la lista de cursos
-    URL: /courses/
-    """
+    """Página de gestión de cursos con CRUD"""
     return render(request, 'academic/courses.html')
 
 
 def students_view(request):
-    """
-    Vista para la página de estudiantes
-    Renderiza la plantilla que muestra la lista de estudiantes
-    URL: /students/
-    """
+    """Página de gestión de estudiantes con CRUD"""
     return render(request, 'academic/students.html')
