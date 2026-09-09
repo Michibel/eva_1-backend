@@ -1,17 +1,37 @@
 ================================================================================
                     PROMPTS Y RESPUESTAS - EVA 1 BACKEND
+                              VERSIÓN FINAL
 ================================================================================
 Fecha: 9 de septiembre 2026
 Proyecto: Sistema de Gestión Académica con Django y DRF
 Asignatura: Desarrollo Backend
 Docente: Marcelo Alvarado
+Estado: COMPLETO - Con CRUD completo y asignación de cursos
+
+================================================================================
+                    ÍNDICE DE PROMPTS
+================================================================================
+
+1.  Configuración inicial del proyecto
+2.  Subida del proyecto a GitHub
+3.  Error al subir a GitHub (src refspec main)
+4.  Creación del super usuario
+5.  Carga de datos desde JSON
+6.  Página de inicio
+7.  Comentar todos los códigos
+8.  Generar prompts.txt
+9.  Error al iniciar servidor (TemplateDoesNotExist)
+10. Error al crear profesor/estudiante/curso (CSRF)
+11. Agregar CRUD completo a la interfaz web
+12. Asignar cursos a estudiantes (nueva funcionalidad)
 
 ================================================================================
 PROMPT 1: Creación del proyecto y configuración inicial
 ================================================================================
 
 PROMPT:
-"Quiero que me ayudes a hacer la eva 1 con todo lo solicitado en el pdf llamado: eva_1_backend"
+"Quiero que me ayudes a hacer la eva 1 con todo lo solicitado en el pdf llamado: 
+eva_1_backend"
 
 RESPUESTA:
 Se proporcionó una guía completa paso a paso para:
@@ -121,42 +141,199 @@ PROMPT 8: Generar prompts.txt
 ================================================================================
 
 PROMPT:
-"tambien quiero que todos los prompts que te di y las respuestas entragadas me las dejes en un txt descargable"
+"tambien quiero que todos los prompts que te di y las respuestas entragadas me las 
+dejes en un txt descargable"
 
 RESPUESTA:
-Se está generando este archivo prompts.txt con todos los prompts y respuestas
-completos de la conversación.
+Se generó el archivo prompts.txt con todos los prompts y respuestas
+completos de la conversación inicial.
 
 ================================================================================
-                    RESUMEN DE ARCHIVOS GENERADOS
+PROMPT 9: Error al iniciar servidor (TemplateDoesNotExist)
 ================================================================================
 
-1. academic/models.py         - Modelos de datos
-2. academic/admin.py          - Registro en admin
-3. academic/serializers.py    - Serializadores DRF
-4. academic/views.py          - Vistas API y Web
-5. academic/urls.py           - URLs de la app
-6. academic_project/settings.py - Configuración del proyecto
-7. academic_project/urls.py   - URLs del proyecto
-8. templates/academic/base.html - Plantilla base
-9. templates/academic/courses.html - Página de cursos
-10. templates/academic/students.html - Página de estudiantes
-11. academic/fixtures/initial_data.json - Datos de prueba
-12. academic/management/commands/load_initial_data.py - Script de carga
-13. .gitignore - Archivos ignorados por Git
-14. prompts.txt - Este archivo de documentación
+PROMPT:
+[Error mostrado: TemplateDoesNotExist at /teachers/]
+
+RESPUESTA:
+El error indicaba que Django no encontraba la plantilla teachers.html.
+Se explicó que:
+1. La carpeta templates/academic/ debía existir
+2. Se debía crear el archivo teachers.html
+3. Se debía usar LISTA [] en lugar de TUPLA () en DIRS de settings.py
+4. Se proporcionaron todas las plantillas completas (teachers, courses, students)
 
 ================================================================================
-                    TECNOLOGÍAS UTILIZADAS
+PROMPT 10: Error al crear profesor/estudiante/curso (CSRF)
 ================================================================================
 
-- Python 3.x
-- Django 4.x
-- Django REST Framework
-- SQLite3 (Base de datos)
-- Bootstrap 5 (Frontend)
-- JavaScript (fetch API)
-- Git y GitHub (Control de versiones)
+PROMPT:
+"me sale error al crear un profesor"
+"tambien me pasa en estudiantes"
+"y en cursos"
+
+RESPUESTA:
+El problema era el CSRF Token. Django requiere este token para peticiones 
+POST, PUT y DELETE por seguridad.
+
+Solución implementada:
+1. Se agregó la función getCSRFToken() en base.html (compartida)
+2. Se agregó la función getHeaders() en base.html
+3. Se modificaron todas las peticiones POST, PUT y DELETE para incluir el token
+4. Se actualizaron teachers.html, courses.html y students.html
+
+================================================================================
+PROMPT 11: Agregar CRUD completo a la interfaz web
+================================================================================
+
+PROMPT:
+"quiero que a la tabla de alumno, curso y profesor les añadas un crud en la pagina 
+que permita eliminar, crear y actualizar"
+
+RESPUESTA:
+Se implementó CRUD completo en todas las páginas web:
+1. Botones para Crear, Editar y Eliminar en cada tabla
+2. Modales (popups) con formularios para crear/editar
+3. JavaScript fetch() para todas las operaciones (POST, PUT, DELETE)
+4. Actualización automática de las tablas después de cada operación
+5. Notificaciones (toast) para confirmar acciones
+
+Archivos modificados:
+- base.html (funciones compartidas CSRF y notificaciones)
+- teachers.html (CRUD completo)
+- courses.html (CRUD completo con selects de profesores)
+- students.html (CRUD completo)
+
+================================================================================
+PROMPT 12: Asignar cursos a estudiantes (nueva funcionalidad)
+================================================================================
+
+PROMPT:
+"necesito que me dejes asignar cursos a alumnos"
+
+RESPUESTA:
+Se implementó la funcionalidad para asignar cursos a estudiantes:
+
+Funcionalidades agregadas:
+1. Botón "+" en cada estudiante para asignar curso
+2. Modal con:
+   - Lista de cursos disponibles (dropdown)
+   - Lista de cursos ya asignados
+   - Botón para desinscribir (eliminar inscripción)
+3. JavaScript para:
+   - POST a /api/enrollments/ (asignar curso)
+   - DELETE a /api/enrollments/{id}/ (desinscribir)
+   - Carga dinámica de cursos asignados
+4. Visualización mejorada:
+   - Contador de cursos por estudiante
+   - Lista de cursos en la tabla
+
+Archivo modificado:
+- students.html (versión completa con asignación de cursos)
+
+================================================================================
+                    ARQUITECTURA FINAL DEL PROYECTO
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────┐
+│                      USUARIO (NAVEGADOR)                        │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      FRONTEND (HTML/CSS/JS)                     │
+│  📁 templates/academic/                                         │
+│  ├── base.html          → Plantilla base con Bootstrap          │
+│  ├── teachers.html      → CRUD de profesores                    │
+│  ├── courses.html       → CRUD de cursos                       │
+│  └── students.html      → CRUD de estudiantes + asignación     │
+│                                                                 │
+│  🔹 JavaScript fetch() → Consume la API                        │
+│  🔹 Bootstrap 5        → Estilos y diseño responsivo           │
+│  🔹 CSRF Token         → Seguridad en peticiones POST/PUT/DELETE│
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      API (Django REST Framework)                │
+│  📁 academic/views.py                                           │
+│  ├── TeacherViewSet     → /api/teachers/                       │
+│  ├── StudentViewSet     → /api/students/                       │
+│  ├── CourseViewSet      → /api/courses/                        │
+│  └── StudentCourseViewSet → /api/enrollments/                  │
+│                                                                 │
+│  🔹 Serializadores      → Convierten Modelos ↔ JSON            │
+│  🔹 ViewSets           → CRUD automático                       │
+│  🔹 Router             → Genera endpoints automáticamente      │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      BACKEND (Django)                           │
+│  📁 academic/models.py                                          │
+│  ├── Teacher           → Modelo de profesores                  │
+│  ├── Student           → Modelo de estudiantes                 │
+│  ├── Course            → Modelo de cursos                      │
+│  └── StudentCourse     → Modelo de inscripciones               │
+│                                                                 │
+│  🔹 ORM de Django      → Interactúa con BD sin SQL             │
+│  🔹 Migraciones        → Sincronizan modelos con BD            │
+│  🔹 Admin Panel        → /admin/ para gestionar datos          │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   BASE DE DATOS (SQLite3)                       │
+│  📁 db.sqlite3                                                  │
+│                                                                 │
+│  Tablas:                                                        │
+│  ├── academic_teacher     → (id, first_name, last_name)        │
+│  ├── academic_student     → (id, first_name, last_name)        │
+│  ├── academic_course      → (id, name, teacher_id)             │
+│  └── academic_studentcourse → (id, student_id, course_id)      │
+│                                                                 │
+│  🔹 SQLite3            → Base de datos ligera (archivo)        │
+│  🔹 Relaciones         → Foreign Keys entre tablas             │
+└─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                    ENDPOINTS DISPONIBLES (API REST)
+================================================================================
+
+| Método | Endpoint | Función |
+|--------|----------|---------|
+| GET    | /api/teachers/      | Listar profesores |
+| POST   | /api/teachers/      | Crear profesor |
+| GET    | /api/teachers/{id}/ | Ver profesor |
+| PUT    | /api/teachers/{id}/ | Actualizar profesor |
+| DELETE | /api/teachers/{id}/ | Eliminar profesor |
+| GET    | /api/students/      | Listar estudiantes |
+| POST   | /api/students/      | Crear estudiante |
+| GET    | /api/students/{id}/ | Ver estudiante |
+| PUT    | /api/students/{id}/ | Actualizar estudiante |
+| DELETE | /api/students/{id}/ | Eliminar estudiante |
+| GET    | /api/courses/       | Listar cursos |
+| POST   | /api/courses/       | Crear curso |
+| GET    | /api/courses/{id}/  | Ver curso |
+| PUT    | /api/courses/{id}/  | Actualizar curso |
+| DELETE | /api/courses/{id}/  | Eliminar curso |
+| GET    | /api/enrollments/   | Listar inscripciones |
+| POST   | /api/enrollments/   | Crear inscripción |
+| GET    | /api/enrollments/{id}/ | Ver inscripción |
+| PUT    | /api/enrollments/{id}/ | Actualizar inscripción |
+| DELETE | /api/enrollments/{id}/ | Eliminar inscripción |
+
+================================================================================
+                    URLS DE LA APLICACIÓN (WEB)
+================================================================================
+
+| URL | Función | CRUD |
+|-----|---------|------|
+| /                          | Página de inicio | - |
+| /teachers/                 | Gestión de profesores | ✅ Completo |
+| /courses/                  | Gestión de cursos | ✅ Completo |
+| /students/                 | Gestión de estudiantes + asignación | ✅ Completo |
+| /admin/                    | Panel administrativo Django | ✅ Completo |
 
 ================================================================================
                     COMANDOS IMPORTANTES
@@ -178,63 +355,104 @@ python manage.py migrate
 # Crear super usuario
 python manage.py createsuperuser
 
-# Cargar datos
+# Cargar datos iniciales
 python manage.py load_initial_data
 
 # Ejecutar servidor
 python manage.py runserver
 
-# URLs de acceso
-http://127.0.0.1:8000/        - Página de inicio
-http://127.0.0.1:8000/courses/ - Lista de cursos
-http://127.0.0.1:8000/students/ - Lista de estudiantes
-http://127.0.0.1:8000/admin/  - Panel administrativo
-http://127.0.0.1:8000/api/    - API Root
+# Verificar datos
+python manage.py shell
+>>> from academic.models import *
+>>> Teacher.objects.all()
+>>> Student.objects.all()
+>>> Course.objects.all()
+>>> StudentCourse.objects.all()
 
 ================================================================================
-                    ESTRUCTURA DE LA API
+                    TECNOLOGÍAS UTILIZADAS
 ================================================================================
 
-GET    /api/teachers/         - Lista de profesores
-POST   /api/teachers/         - Crear profesor
-GET    /api/teachers/{id}/    - Detalle de profesor
-PUT    /api/teachers/{id}/    - Actualizar profesor
-DELETE /api/teachers/{id}/    - Eliminar profesor
+- Python 3.14.7
+- Django 6.1.1
+- Django REST Framework
+- SQLite3 (Base de datos)
+- Bootstrap 5 (Frontend)
+- JavaScript (fetch API)
+- Font Awesome (Iconos)
+- Git y GitHub (Control de versiones)
 
-GET    /api/students/         - Lista de estudiantes
-POST   /api/students/         - Crear estudiante
-GET    /api/students/{id}/    - Detalle de estudiante
-PUT    /api/students/{id}/    - Actualizar estudiante
-DELETE /api/students/{id}/    - Eliminar estudiante
+================================================================================
+                    ARCHIVOS DEL PROYECTO
+================================================================================
 
-GET    /api/courses/          - Lista de cursos
-POST   /api/courses/          - Crear curso
-GET    /api/courses/{id}/     - Detalle de curso
-PUT    /api/courses/{id}/     - Actualizar curso
-DELETE /api/courses/{id}/     - Eliminar curso
+1. academic/models.py                   - Modelos de datos
+2. academic/admin.py                    - Registro en admin
+3. academic/serializers.py              - Serializadores DRF
+4. academic/views.py                    - Vistas API y Web
+5. academic/urls.py                     - URLs de la app
+6. academic_project/settings.py         - Configuración del proyecto
+7. academic_project/urls.py             - URLs del proyecto
+8. templates/academic/base.html         - Plantilla base (con CSRF)
+9. templates/academic/teachers.html     - CRUD profesores
+10. templates/academic/courses.html     - CRUD cursos
+11. templates/academic/students.html    - CRUD estudiantes + asignación
+12. academic/fixtures/initial_data.json - Datos de prueba
+13. academic/management/commands/load_initial_data.py - Script de carga
+14. .gitignore                          - Archivos ignorados por Git
+15. prompts.txt                         - Este archivo de documentación
 
-GET    /api/enrollments/      - Lista de inscripciones
-POST   /api/enrollments/      - Crear inscripción
-GET    /api/enrollments/{id}/ - Detalle de inscripción
-PUT    /api/enrollments/{id}/ - Actualizar inscripción
-DELETE /api/enrollments/{id}/ - Eliminar inscripción
+================================================================================
+                    REQUERIMIENTOS DE LA EVALUACIÓN
+================================================================================
+
+✅ 1. Configuración del Proyecto y Paquetes
+   - Proyecto Django 'academic_project'
+   - App 'academic'
+   - DRF registrado en INSTALLED_APPS
+
+✅ 2. Modelos de Datos
+   - Teacher, Student, Course, StudentCourse
+   - Relaciones ForeignKey y Many-to-Many
+
+✅ 3. Serializadores y Endpoints DRF
+   - TeacherSerializer, StudentSerializer, CourseSerializer
+   - ViewSets con ModelViewSet
+   - Router para endpoints automáticos
+
+✅ 4. Interfaz Web y Enmascaramiento
+   - base.html con Bootstrap
+   - courses.html y students.html
+   - JavaScript fetch() para consumir API
+   - Sin error 404 en /
+
+✅ 5. Uso de Inteligencia Artificial
+   - prompts.txt con todos los prompts utilizados
+
+✅ 6. Subir a GitHub
+   - Repositorio público con todo el código
+
+✅ 7. Funcionalidades Extras (No requeridas pero implementadas)
+   - CRUD completo en la interfaz web (crear, editar, eliminar)
+   - Asignación de cursos a estudiantes
+   - Desinscripción de estudiantes
+   - Notificaciones toast
+   - CSRF Token para seguridad
 
 ================================================================================
                     NOTAS FINALES
 ================================================================================
 
-El proyecto cumple con todos los requerimientos de la evaluación:
-✅ Configuración de Django y DRF
-✅ Modelos según ER
-✅ Serializadores para cada entidad
-✅ Endpoints de API funcionales
-✅ Plantillas HTML con Bootstrap
-✅ JavaScript fetch() para consumir API
-✅ Enmascaramiento de endpoints (sin error 404)
-✅ Datos de prueba en JSON
-✅ Script para carga de datos
-✅ Código completamente comentado
-✅ Repositorio en GitHub
-✅ Documentación de prompts
+El proyecto ha sido completado exitosamente con todas las funcionalidades
+solicitadas en la evaluación y funcionalidades extras para mejorar la
+experiencia de usuario.
+
+Puntos destacados:
+1. Arquitectura limpia separada en Frontend, API, Backend y Base de Datos
+2. CRUD completo en todas las entidades
+3. Interfaz responsiva con Bootstrap
+4. Comunicación asíncrona con fetch()
+5. Manejo de errores y notificaciones
+6. Documentación completa de prompts
 
 ================================================================================
