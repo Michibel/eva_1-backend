@@ -1,5 +1,5 @@
 <!-- templates/academic/courses.html -->
-<!-- Página de gestión de cursos con CRUD completo -->
+<!-- Página de gestión de cursos con CRUD completo (CORREGIDO) -->
 
 {% extends 'academic/base.html' %}
 
@@ -28,9 +28,7 @@
     </tbody>
 </table>
 
-<!-- ============================================ -->
 <!-- MODAL: CREAR CURSO -->
-<!-- ============================================ -->
 <div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -62,9 +60,7 @@
     </div>
 </div>
 
-<!-- ============================================ -->
 <!-- MODAL: EDITAR CURSO -->
-<!-- ============================================ -->
 <div class="modal fade" id="editCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -97,9 +93,7 @@
     </div>
 </div>
 
-<!-- ============================================ -->
 <!-- MODAL: CONFIRMAR ELIMINACIÓN -->
-<!-- ============================================ -->
 <div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -122,17 +116,14 @@
 </div>
 
 <!-- ============================================ -->
-<!-- JAVASCRIPT: CRUD COMPLETO -->
+<!-- JAVASCRIPT CRUD (CORREGIDO CON CSRF) -->
 <!-- ============================================ -->
 <script>
-    // ============================================
-    // VARIABLES GLOBALES
-    // ============================================
     let currentDeleteCourseId = null;
     let teachersList = [];
 
     // ============================================
-    // FUNCIÓN: CARGAR PROFESORES PARA SELECTS
+    // CARGAR PROFESORES PARA SELECTS
     // ============================================
     async function loadTeachersForSelects() {
         try {
@@ -140,11 +131,9 @@
             if (!response.ok) throw new Error('Error al cargar profesores');
             teachersList = await response.json();
             
-            // Llenar selects
             const selects = ['createCourseTeacher', 'editCourseTeacher'];
             selects.forEach(id => {
                 const select = document.getElementById(id);
-                // Mantener el primer elemento (Seleccione...)
                 const firstOption = select.options[0];
                 select.innerHTML = '';
                 select.appendChild(firstOption);
@@ -162,7 +151,7 @@
     }
 
     // ============================================
-    // FUNCIÓN: CARGAR CURSOS
+    // CARGAR CURSOS
     // ============================================
     async function loadCourses() {
         const tbody = document.getElementById('courses-list');
@@ -204,7 +193,7 @@
     }
 
     // ============================================
-    // FUNCIÓN: CREAR CURSO
+    // CREAR CURSO (CON CSRF)
     // ============================================
     document.getElementById('saveCourseBtn').addEventListener('click', async function() {
         const name = document.getElementById('createCourseName').value.trim();
@@ -218,11 +207,14 @@
         try {
             const response = await fetch('/api/courses/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),  // ← Usa la función compartida
                 body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
             });
 
-            if (!response.ok) throw new Error('Error al crear el curso');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al crear el curso');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
             modal.hide();
@@ -234,12 +226,12 @@
             showToast('✅ Curso creado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al crear el curso.', 'error');
+            showToast('❌ Error al crear: ' + error.message, 'error');
         }
     });
 
     // ============================================
-    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
+    // ABRIR MODAL DE EDICIÓN
     // ============================================
     function openEditCourse(id, name, teacherId) {
         document.getElementById('editCourseId').value = id;
@@ -251,7 +243,7 @@
     }
 
     // ============================================
-    // FUNCIÓN: ACTUALIZAR CURSO
+    // ACTUALIZAR CURSO (CON CSRF)
     // ============================================
     document.getElementById('updateCourseBtn').addEventListener('click', async function() {
         const id = document.getElementById('editCourseId').value;
@@ -266,11 +258,14 @@
         try {
             const response = await fetch(`/api/courses/${id}/`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),  // ← Usa la función compartida
                 body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
             });
 
-            if (!response.ok) throw new Error('Error al actualizar el curso');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al actualizar');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
             modal.hide();
@@ -279,12 +274,12 @@
             showToast('✅ Curso actualizado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al actualizar el curso.', 'error');
+            showToast('❌ Error al actualizar: ' + error.message, 'error');
         }
     });
 
     // ============================================
-    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
+    // ABRIR MODAL DE ELIMINACIÓN
     // ============================================
     function openDeleteCourse(id, name) {
         currentDeleteCourseId = id;
@@ -295,17 +290,22 @@
     }
 
     // ============================================
-    // FUNCIÓN: ELIMINAR CURSO
+    // ELIMINAR CURSO (CON CSRF)
     // ============================================
     document.getElementById('confirmDeleteCourseBtn').addEventListener('click', async function() {
         if (!currentDeleteCourseId) return;
 
         try {
             const response = await fetch(`/api/courses/${currentDeleteCourseId}/`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()  // ← CSRF para DELETE
+                }
             });
 
-            if (!response.ok) throw new Error('Error al eliminar el curso');
+            if (!response.ok) {
+                throw new Error('Error al eliminar el curso');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal'));
             modal.hide();
@@ -314,13 +314,11 @@
             showToast('✅ Curso eliminado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al eliminar el curso.', 'success');
+            showToast('❌ Error al eliminar: ' + error.message, 'error');
         }
     });
 
-    // ============================================
     // INICIALIZAR
-    // ============================================
     document.addEventListener('DOMContentLoaded', async function() {
         await loadTeachersForSelects();
         await loadCourses();

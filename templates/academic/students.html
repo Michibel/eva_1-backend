@@ -1,5 +1,5 @@
 <!-- templates/academic/students.html -->
-<!-- Página de gestión de estudiantes con CRUD completo -->
+<!-- Página de gestión de estudiantes con CRUD completo (CORREGIDO) -->
 
 {% extends 'academic/base.html' %}
 
@@ -29,9 +29,7 @@
     </tbody>
 </table>
 
-<!-- ============================================ -->
 <!-- MODAL: CREAR ESTUDIANTE -->
-<!-- ============================================ -->
 <div class="modal fade" id="createStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -61,9 +59,7 @@
     </div>
 </div>
 
-<!-- ============================================ -->
 <!-- MODAL: EDITAR ESTUDIANTE -->
-<!-- ============================================ -->
 <div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -94,9 +90,7 @@
     </div>
 </div>
 
-<!-- ============================================ -->
 <!-- MODAL: CONFIRMAR ELIMINACIÓN -->
-<!-- ============================================ -->
 <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -119,33 +113,27 @@
 </div>
 
 <!-- ============================================ -->
-<!-- JAVASCRIPT: CRUD COMPLETO -->
+<!-- JAVASCRIPT CRUD (CORREGIDO CON CSRF) -->
 <!-- ============================================ -->
 <script>
-    // ============================================
-    // VARIABLES GLOBALES
-    // ============================================
     let currentDeleteStudentId = null;
 
     // ============================================
-    // FUNCIÓN: CARGAR ESTUDIANTES
+    // CARGAR ESTUDIANTES
     // ============================================
     async function loadStudents() {
         const tbody = document.getElementById('students-list');
         try {
-            // Obtener estudiantes
             const responseStudents = await fetch('/api/students/');
             if (!responseStudents.ok) throw new Error(`Error: ${responseStudents.status}`);
             const students = await responseStudents.json();
 
-            // Obtener cursos e inscripciones para mostrar los cursos inscritos
             const responseCourses = await fetch('/api/courses/');
             const responseEnrollments = await fetch('/api/enrollments/');
             
             const courses = await responseCourses.json();
             const enrollments = await responseEnrollments.json();
 
-            // Crear mapas
             const coursesMap = {};
             courses.forEach(course => {
                 coursesMap[course.id] = course.name;
@@ -196,7 +184,7 @@
     }
 
     // ============================================
-    // FUNCIÓN: CREAR ESTUDIANTE
+    // CREAR ESTUDIANTE (CON CSRF)
     // ============================================
     document.getElementById('saveStudentBtn').addEventListener('click', async function() {
         const firstName = document.getElementById('createStudentFirstName').value.trim();
@@ -210,11 +198,14 @@
         try {
             const response = await fetch('/api/students/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),  // ← Usa la función compartida
                 body: JSON.stringify({ first_name: firstName, last_name: lastName })
             });
 
-            if (!response.ok) throw new Error('Error al crear el estudiante');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al crear el estudiante');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('createStudentModal'));
             modal.hide();
@@ -226,12 +217,12 @@
             showToast('✅ Estudiante creado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al crear el estudiante.', 'error');
+            showToast('❌ Error al crear: ' + error.message, 'error');
         }
     });
 
     // ============================================
-    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
+    // ABRIR MODAL DE EDICIÓN
     // ============================================
     function openEditStudent(id, firstName, lastName) {
         document.getElementById('editStudentId').value = id;
@@ -243,7 +234,7 @@
     }
 
     // ============================================
-    // FUNCIÓN: ACTUALIZAR ESTUDIANTE
+    // ACTUALIZAR ESTUDIANTE (CON CSRF)
     // ============================================
     document.getElementById('updateStudentBtn').addEventListener('click', async function() {
         const id = document.getElementById('editStudentId').value;
@@ -258,11 +249,14 @@
         try {
             const response = await fetch(`/api/students/${id}/`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getHeaders(),  // ← Usa la función compartida
                 body: JSON.stringify({ first_name: firstName, last_name: lastName })
             });
 
-            if (!response.ok) throw new Error('Error al actualizar el estudiante');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al actualizar');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
             modal.hide();
@@ -271,12 +265,12 @@
             showToast('✅ Estudiante actualizado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al actualizar el estudiante.', 'error');
+            showToast('❌ Error al actualizar: ' + error.message, 'error');
         }
     });
 
     // ============================================
-    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
+    // ABRIR MODAL DE ELIMINACIÓN
     // ============================================
     function openDeleteStudent(id, name) {
         currentDeleteStudentId = id;
@@ -287,17 +281,22 @@
     }
 
     // ============================================
-    // FUNCIÓN: ELIMINAR ESTUDIANTE
+    // ELIMINAR ESTUDIANTE (CON CSRF)
     // ============================================
     document.getElementById('confirmDeleteStudentBtn').addEventListener('click', async function() {
         if (!currentDeleteStudentId) return;
 
         try {
             const response = await fetch(`/api/students/${currentDeleteStudentId}/`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()  // ← CSRF para DELETE
+                }
             });
 
-            if (!response.ok) throw new Error('Error al eliminar el estudiante');
+            if (!response.ok) {
+                throw new Error('Error al eliminar el estudiante');
+            }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('deleteStudentModal'));
             modal.hide();
@@ -306,13 +305,11 @@
             showToast('✅ Estudiante eliminado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al eliminar el estudiante.', 'error');
+            showToast('❌ Error al eliminar: ' + error.message, 'error');
         }
     });
 
-    // ============================================
     // INICIALIZAR
-    // ============================================
     document.addEventListener('DOMContentLoaded', loadStudents);
 </script>
 {% endblock %}
