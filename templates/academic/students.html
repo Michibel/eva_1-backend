@@ -1,8 +1,13 @@
+<!-- templates/academic/students.html -->
+<!-- Página que muestra el listado de estudiantes -->
+<!-- Extiende base.html y usa fetch() para consumir múltiples endpoints -->
+
 {% extends 'academic/base.html' %}
 
 {% block content %}
-<h2 class="mb-4">Lista de Estudiantes</h2>
+<h2 class="mb-4">👨‍🎓 Lista de Estudiantes</h2>
 
+<!-- Tabla para mostrar los estudiantes -->
 <table class="table table-striped table-bordered" id="students-table">
     <thead class="table-dark">
         <tr>
@@ -13,60 +18,92 @@
         </tr>
     </thead>
     <tbody id="students-list">
-        <!-- Los estudiantes se cargarán aquí dinámicamente con JavaScript -->
         <tr>
-            <td colspan="4" class="text-center">Cargando datos...</td>
+            <td colspan="4" class="text-center">⏳ Cargando datos...</td>
         </tr>
     </tbody>
 </table>
 
+<!-- ============================================ -->
+<!-- JAVASCRIPT: Consumo de la API con fetch() -->
+<!-- ============================================ -->
 <script>
+    /**
+     * Función asíncrona que carga estudiantes y sus inscripciones
+     * Consulta 3 endpoints para obtener datos relacionados:
+     *   1. /api/students/     - Lista de estudiantes
+     *   2. /api/courses/      - Lista de cursos (para nombres)
+     *   3. /api/enrollments/  - Lista de inscripciones
+     */
     async function loadStudents() {
         const tbody = document.getElementById('students-list');
+        
         try {
-            // Obtener estudiantes
+            // ============================================
+            // PASO 1: Obtener datos de estudiantes
+            // ============================================
             const responseStudents = await fetch('/api/students/');
-            if (!responseStudents.ok) throw new Error(`Error: ${responseStudents.status}`);
+            if (!responseStudents.ok) throw new Error(`Error students: ${responseStudents.status}`);
             const students = await responseStudents.json();
-
-            // Obtener inscripciones para saber qué cursos tiene cada estudiante
-            const responseEnrollments = await fetch('/api/enrollments/');
-            if (!responseEnrollments.ok) throw new Error(`Error: ${responseEnrollments.status}`);
-            const enrollments = await responseEnrollments.json();
-
-            // Obtener cursos para tener sus nombres
+            
+            // ============================================
+            // PASO 2: Obtener datos de cursos
+            // ============================================
             const responseCourses = await fetch('/api/courses/');
-            if (!responseCourses.ok) throw new Error(`Error: ${responseCourses.status}`);
+            if (!responseCourses.ok) throw new Error(`Error courses: ${responseCourses.status}`);
             const courses = await responseCourses.json();
-
-            // Crear un mapa de cursos por ID
+            
+            // ============================================
+            // PASO 3: Obtener datos de inscripciones
+            // ============================================
+            const responseEnrollments = await fetch('/api/enrollments/');
+            if (!responseEnrollments.ok) throw new Error(`Error enrollments: ${responseEnrollments.status}`);
+            const enrollments = await responseEnrollments.json();
+            
+            // ============================================
+            // PASO 4: Crear un mapa de cursos (ID -> Nombre)
+            // ============================================
+            // Los mapas (objetos) permiten búsquedas rápidas por clave
             const coursesMap = {};
             courses.forEach(course => {
                 coursesMap[course.id] = course.name;
             });
-
-            // Crear un mapa de inscripciones por estudiante
+            
+            // ============================================
+            // PASO 5: Crear un mapa de inscripciones (Estudiante -> Lista de cursos)
+            // ============================================
             const enrollmentsMap = {};
             enrollments.forEach(enrollment => {
                 const studentId = enrollment.student;
+                // Obtener nombre del curso usando el mapa
                 const courseName = coursesMap[enrollment.course] || 'Curso desconocido';
+                
+                // Si el estudiante no tiene un array, crearlo
                 if (!enrollmentsMap[studentId]) {
                     enrollmentsMap[studentId] = [];
                 }
+                // Agregar el curso a la lista del estudiante
                 enrollmentsMap[studentId].push(courseName);
             });
-
-            // Limpiar tabla
+            
+            // ============================================
+            // PASO 6: Limpiar la tabla
+            // ============================================
             tbody.innerHTML = '';
-
+            
+            // Verificar si hay estudiantes
             if (students.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay estudiantes disponibles.</td></tr>`;
                 return;
             }
-
-            // Renderizar estudiantes
+            
+            // ============================================
+            // PASO 7: Renderizar cada estudiante
+            // ============================================
             students.forEach(student => {
+                // Obtener cursos del estudiante (o array vacío si no tiene)
                 const coursesList = enrollmentsMap[student.id] || ['Sin cursos'];
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${student.id}</td>
@@ -76,12 +113,21 @@
                 `;
                 tbody.appendChild(row);
             });
+            
         } catch (error) {
+            // Manejo de errores
             console.error('Error:', error);
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar los datos.</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger">
+                        ❌ Error al cargar los datos. Intente nuevamente.
+                    </td>
+                </tr>
+            `;
         }
     }
-
+    
+    // Ejecutar la función cuando la página cargue
     document.addEventListener('DOMContentLoaded', loadStudents);
 </script>
 {% endblock %}

@@ -1,9 +1,15 @@
+<!-- templates/academic/courses.html -->
+<!-- Página que muestra el listado de cursos -->
+<!-- Extiende base.html y usa fetch() para consumir la API -->
+
 {% extends 'academic/base.html' %}
 
 {% block content %}
-<h2 class="mb-4">Lista de Cursos</h2>
+<h2 class="mb-4">📚 Lista de Cursos</h2>
 
+<!-- Tabla para mostrar los cursos -->
 <table class="table table-striped table-bordered" id="courses-table">
+    <!-- Cabecera de la tabla -->
     <thead class="table-dark">
         <tr>
             <th>ID</th>
@@ -11,50 +17,102 @@
             <th>Profesor</th>
         </tr>
     </thead>
+    <!-- Cuerpo de la tabla (llenado dinámicamente con JS) -->
     <tbody id="courses-list">
-        <!-- Los cursos se cargarán aquí dinámicamente con JavaScript -->
+        <!-- Mensaje de carga mientras se obtienen los datos -->
         <tr>
-            <td colspan="3" class="text-center">Cargando datos...</td>
+            <td colspan="3" class="text-center">⏳ Cargando datos...</td>
         </tr>
     </tbody>
 </table>
 
+<!-- ============================================ -->
+<!-- JAVASCRIPT: Consumo de la API con fetch() -->
+<!-- ============================================ -->
 <script>
-    // Función para cargar los cursos desde la API
+    /**
+     * Función asíncrona que carga los cursos desde la API
+     * Usa fetch() para hacer una petición GET al endpoint /api/courses/
+     * Renderiza los datos en la tabla HTML
+     */
     async function loadCourses() {
+        // Obtener referencia al cuerpo de la tabla
         const tbody = document.getElementById('courses-list');
+        
         try {
+            // ============================================
+            // PASO 1: Hacer la petición a la API
+            // ============================================
+            // fetch() realiza una petición HTTP asíncrona
+            // await espera la respuesta antes de continuar
             const response = await fetch('/api/courses/');
+            
+            // Verificar si la respuesta fue exitosa (código 200-299)
             if (!response.ok) {
+                // Si hay error, lanzar una excepción
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            // ============================================
+            // PASO 2: Convertir la respuesta a JSON
+            // ============================================
+            // response.json() convierte el body de la respuesta en un objeto JavaScript
             const courses = await response.json();
             
-            // Limpiar el mensaje de "Cargando..."
+            // ============================================
+            // PASO 3: Limpiar el mensaje de "Cargando..."
+            // ============================================
             tbody.innerHTML = '';
-
+            
+            // ============================================
+            // PASO 4: Verificar si hay datos
+            // ============================================
             if (courses.length === 0) {
+                // Mostrar mensaje si no hay cursos
                 tbody.innerHTML = `<tr><td colspan="3" class="text-center">No hay cursos disponibles.</td></tr>`;
                 return;
             }
-
-            // Renderizar cada curso en una fila de la tabla
+            
+            // ============================================
+            // PASO 5: Renderizar cada curso en la tabla
+            // ============================================
+            // forEach() itera sobre cada elemento del array
             courses.forEach(course => {
+                // createElement() crea un nuevo elemento HTML
                 const row = document.createElement('tr');
+                
+                // innerHTML define el contenido HTML de la fila
+                // Template literals (``) permiten interpolar variables
                 row.innerHTML = `
                     <td>${course.id}</td>
                     <td>${course.name}</td>
                     <td>${course.teacher_name || 'Sin asignar'}</td>
                 `;
+                
+                // appendChild() agrega la fila al cuerpo de la tabla
                 tbody.appendChild(row);
             });
+            
         } catch (error) {
+            // ============================================
+            // PASO 6: Manejo de errores
+            // ============================================
+            // Si ocurre algún error, mostrar mensaje en la tabla
             console.error('Error al cargar los cursos:', error);
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger">Error al cargar los datos.</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-danger">
+                        ❌ Error al cargar los datos. Intente nuevamente.
+                    </td>
+                </tr>
+            `;
         }
     }
-
-    // Llamar a la función cuando la página esté completamente cargada
+    
+    // ============================================
+    // EJECUTAR LA FUNCIÓN CUANDO LA PÁGINA CARGUE
+    // ============================================
+    // DOMContentLoaded: Evento que se dispara cuando el DOM está completamente cargado
     document.addEventListener('DOMContentLoaded', loadCourses);
 </script>
 {% endblock %}
