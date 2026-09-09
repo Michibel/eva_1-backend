@@ -1,0 +1,60 @@
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Lista de Cursos</h2>
+
+<table class="table table-striped table-bordered" id="courses-table">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre del Curso</th>
+            <th>Profesor</th>
+        </tr>
+    </thead>
+    <tbody id="courses-list">
+        <!-- Los cursos se cargarán aquí dinámicamente con JavaScript -->
+        <tr>
+            <td colspan="3" class="text-center">Cargando datos...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    // Función para cargar los cursos desde la API
+    async function loadCourses() {
+        const tbody = document.getElementById('courses-list');
+        try {
+            const response = await fetch('/api/courses/');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const courses = await response.json();
+            
+            // Limpiar el mensaje de "Cargando..."
+            tbody.innerHTML = '';
+
+            if (courses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center">No hay cursos disponibles.</td></tr>`;
+                return;
+            }
+
+            // Renderizar cada curso en una fila de la tabla
+            courses.forEach(course => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${course.id}</td>
+                    <td>${course.name}</td>
+                    <td>${course.teacher_name || 'Sin asignar'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error al cargar los cursos:', error);
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger">Error al cargar los datos.</td></tr>`;
+        }
+    }
+
+    // Llamar a la función cuando la página esté completamente cargada
+    document.addEventListener('DOMContentLoaded', loadCourses);
+</script>
+{% endblock %}

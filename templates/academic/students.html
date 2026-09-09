@@ -1,0 +1,87 @@
+{% extends 'academic/base.html' %}
+
+{% block content %}
+<h2 class="mb-4">Lista de Estudiantes</h2>
+
+<table class="table table-striped table-bordered" id="students-table">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Cursos Inscritos</th>
+        </tr>
+    </thead>
+    <tbody id="students-list">
+        <!-- Los estudiantes se cargarán aquí dinámicamente con JavaScript -->
+        <tr>
+            <td colspan="4" class="text-center">Cargando datos...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    async function loadStudents() {
+        const tbody = document.getElementById('students-list');
+        try {
+            // Obtener estudiantes
+            const responseStudents = await fetch('/api/students/');
+            if (!responseStudents.ok) throw new Error(`Error: ${responseStudents.status}`);
+            const students = await responseStudents.json();
+
+            // Obtener inscripciones para saber qué cursos tiene cada estudiante
+            const responseEnrollments = await fetch('/api/enrollments/');
+            if (!responseEnrollments.ok) throw new Error(`Error: ${responseEnrollments.status}`);
+            const enrollments = await responseEnrollments.json();
+
+            // Obtener cursos para tener sus nombres
+            const responseCourses = await fetch('/api/courses/');
+            if (!responseCourses.ok) throw new Error(`Error: ${responseCourses.status}`);
+            const courses = await responseCourses.json();
+
+            // Crear un mapa de cursos por ID
+            const coursesMap = {};
+            courses.forEach(course => {
+                coursesMap[course.id] = course.name;
+            });
+
+            // Crear un mapa de inscripciones por estudiante
+            const enrollmentsMap = {};
+            enrollments.forEach(enrollment => {
+                const studentId = enrollment.student;
+                const courseName = coursesMap[enrollment.course] || 'Curso desconocido';
+                if (!enrollmentsMap[studentId]) {
+                    enrollmentsMap[studentId] = [];
+                }
+                enrollmentsMap[studentId].push(courseName);
+            });
+
+            // Limpiar tabla
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay estudiantes disponibles.</td></tr>`;
+                return;
+            }
+
+            // Renderizar estudiantes
+            students.forEach(student => {
+                const coursesList = enrollmentsMap[student.id] || ['Sin cursos'];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.first_name}</td>
+                    <td>${student.last_name}</td>
+                    <td>${coursesList.join(', ')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar los datos.</td></tr>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStudents);
+</script>
+{% endblock %}
