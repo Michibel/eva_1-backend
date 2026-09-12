@@ -1,5 +1,5 @@
 # academic/urls.py
-# Configuración de URLs con todas las páginas CRUD
+# Configuración de URLs con Dashboard
 
 from django.urls import path, include
 from rest_framework import routers
@@ -20,12 +20,12 @@ router.register(r'enrollments', views.StudentCourseViewSet)
 # ============================================
 
 urlpatterns = [
-    # --- Rutas de la API (DRF) ---
+    # Rutas de la API (DRF)
     path('api/', include(router.urls)),
     
-    # --- Rutas de las páginas web ---
-    path('', views.home_view, name='home'),
-    path('teachers/', views.teachers_view, name='teachers'),      # Nueva
+    # Rutas de las páginas web
+    path('', views.dashboard_view, name='dashboard'),
+    path('teachers/', views.teachers_view, name='teachers'),
     path('courses/', views.courses_view, name='courses'),
     path('students/', views.students_view, name='students'),
 ]

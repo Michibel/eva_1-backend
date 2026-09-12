@@ -1,58 +1,61 @@
 <!-- templates/academic/courses.html -->
-<!-- Página de gestión de cursos con CRUD completo (CORREGIDO) -->
+<!-- Gestión de cursos con CRUD completo -->
 
 {% extends 'academic/base.html' %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📚 Gestión de Cursos</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createCourseModal">
-        <i class="fas fa-plus"></i> Nuevo Curso
-    </button>
-</div>
+{% block title %}Cursos - Sistema Académico{% endblock %}
+{% block page_title %}📚 Gestión de Cursos{% endblock %}
+{% block breadcrumb %}Inicio / Cursos{% endblock %}
 
-<!-- Tabla de cursos -->
-<table class="table table-striped table-bordered" id="courses-table">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre del Curso</th>
-            <th>Profesor</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody id="courses-list">
-        <tr>
-            <td colspan="4" class="text-center">⏳ Cargando datos...</td>
-        </tr>
-    </tbody>
-</table>
+{% block content %}
+<div class="content-card">
+    <div class="content-card-header">
+        <h3><i class="fas fa-book"></i> Lista de Cursos</h3>
+        <button class="btn-modern btn-success-modern" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+            <i class="fas fa-plus"></i> Nuevo Curso
+        </button>
+    </div>
+
+    <table class="table-modern" id="courses-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Curso</th>
+                <th>Profesor</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="courses-list">
+            <tr>
+                <td colspan="4" class="text-center">⏳ Cargando datos...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 <!-- MODAL: CREAR CURSO -->
 <div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Crear Nuevo Curso</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Crear Nuevo Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="createCourseForm">
-                    <div class="mb-3">
-                        <label for="createCourseName" class="form-label">Nombre del Curso</label>
-                        <input type="text" class="form-control" id="createCourseName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="createCourseTeacher" class="form-label">Profesor</label>
-                        <select class="form-control" id="createCourseTeacher" required>
-                            <option value="">Seleccione un profesor...</option>
-                        </select>
-                    </div>
-                </form>
+                <div class="mb-3">
+                    <label for="createCourseName" class="form-label">Nombre del Curso</label>
+                    <input type="text" class="form-control" id="createCourseName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="createCourseTeacher" class="form-label">Profesor</label>
+                    <select class="form-select" id="createCourseTeacher" required>
+                        <option value="">Seleccione un profesor...</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="saveCourseBtn">
+                <button type="button" class="btn-modern btn-success-modern" id="saveCourseBtn">
                     <i class="fas fa-save"></i> Guardar
                 </button>
             </div>
@@ -65,27 +68,25 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Editar Curso</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="editCourseForm">
-                    <input type="hidden" id="editCourseId">
-                    <div class="mb-3">
-                        <label for="editCourseName" class="form-label">Nombre del Curso</label>
-                        <input type="text" class="form-control" id="editCourseName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editCourseTeacher" class="form-label">Profesor</label>
-                        <select class="form-control" id="editCourseTeacher" required>
-                            <option value="">Seleccione un profesor...</option>
-                        </select>
-                    </div>
-                </form>
+                <input type="hidden" id="editCourseId">
+                <div class="mb-3">
+                    <label for="editCourseName" class="form-label">Nombre del Curso</label>
+                    <input type="text" class="form-control" id="editCourseName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editCourseTeacher" class="form-label">Profesor</label>
+                    <select class="form-select" id="editCourseTeacher" required>
+                        <option value="">Seleccione un profesor...</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="updateCourseBtn">
+                <button type="button" class="btn-modern btn-primary-modern" id="updateCourseBtn">
                     <i class="fas fa-save"></i> Actualizar
                 </button>
             </div>
@@ -98,8 +99,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-danger">⚠️ Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>¿Estás seguro de que deseas eliminar el curso <strong id="deleteCourseName"></strong>?</p>
@@ -107,7 +108,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteCourseBtn">
+                <button type="button" class="btn-modern btn-danger-modern" id="confirmDeleteCourseBtn">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
             </div>
@@ -115,24 +116,16 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- JAVASCRIPT CRUD (CORREGIDO CON CSRF) -->
-<!-- ============================================ -->
 <script>
     let currentDeleteCourseId = null;
     let teachersList = [];
 
-    // ============================================
-    // CARGAR PROFESORES PARA SELECTS
-    // ============================================
     async function loadTeachersForSelects() {
         try {
             const response = await fetch('/api/teachers/');
-            if (!response.ok) throw new Error('Error al cargar profesores');
             teachersList = await response.json();
             
-            const selects = ['createCourseTeacher', 'editCourseTeacher'];
-            selects.forEach(id => {
+            ['createCourseTeacher', 'editCourseTeacher'].forEach(id => {
                 const select = document.getElementById(id);
                 const firstOption = select.options[0];
                 select.innerHTML = '';
@@ -150,14 +143,10 @@
         }
     }
 
-    // ============================================
-    // CARGAR CURSOS
-    // ============================================
     async function loadCourses() {
         const tbody = document.getElementById('courses-list');
         try {
             const response = await fetch('/api/courses/');
-            if (!response.ok) throw new Error(`Error: ${response.status}`);
             const courses = await response.json();
 
             tbody.innerHTML = '';
@@ -170,18 +159,16 @@
             courses.forEach(course => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${course.id}</td>
+                    <td><strong>${course.id}</strong></td>
                     <td>${course.name}</td>
-                    <td>${course.teacher_name || 'Sin asignar'}</td>
+                    <td><span class="badge-modern badge-primary">${course.teacher_name || 'Sin asignar'}</span></td>
                     <td>
-                        <div class="table-actions">
-                            <button class="btn btn-sm btn-edit" onclick="openEditCourse(${course.id}, '${course.name}', ${course.teacher})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-delete" onclick="openDeleteCourse(${course.id}, '${course.name}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <button class="btn-icon btn-edit" onclick="openEditCourse(${course.id}, '${course.name}', ${course.teacher})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="openDeleteCourse(${course.id}, '${course.name}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -192,9 +179,6 @@
         }
     }
 
-    // ============================================
-    // CREAR CURSO (CON CSRF)
-    // ============================================
     document.getElementById('saveCourseBtn').addEventListener('click', async function() {
         const name = document.getElementById('createCourseName').value.trim();
         const teacherId = document.getElementById('createCourseTeacher').value;
@@ -207,18 +191,13 @@
         try {
             const response = await fetch('/api/courses/', {
                 method: 'POST',
-                headers: getHeaders(),  // ← Usa la función compartida
+                headers: getHeaders(),
                 body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al crear el curso');
-            }
+            if (!response.ok) throw new Error('Error al crear el curso');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('createCourseModal')).hide();
             document.getElementById('createCourseName').value = '';
             document.getElementById('createCourseTeacher').value = '';
 
@@ -230,21 +209,13 @@
         }
     });
 
-    // ============================================
-    // ABRIR MODAL DE EDICIÓN
-    // ============================================
     function openEditCourse(id, name, teacherId) {
         document.getElementById('editCourseId').value = id;
         document.getElementById('editCourseName').value = name;
         document.getElementById('editCourseTeacher').value = teacherId;
-        
-        const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('editCourseModal')).show();
     }
 
-    // ============================================
-    // ACTUALIZAR CURSO (CON CSRF)
-    // ============================================
     document.getElementById('updateCourseBtn').addEventListener('click', async function() {
         const id = document.getElementById('editCourseId').value;
         const name = document.getElementById('editCourseName').value.trim();
@@ -258,18 +229,13 @@
         try {
             const response = await fetch(`/api/courses/${id}/`, {
                 method: 'PUT',
-                headers: getHeaders(),  // ← Usa la función compartida
+                headers: getHeaders(),
                 body: JSON.stringify({ name: name, teacher: parseInt(teacherId) })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al actualizar');
-            }
+            if (!response.ok) throw new Error('Error al actualizar');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editCourseModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('editCourseModal')).hide();
             await loadCourses();
             showToast('✅ Curso actualizado exitosamente.', 'success');
         } catch (error) {
@@ -278,38 +244,24 @@
         }
     });
 
-    // ============================================
-    // ABRIR MODAL DE ELIMINACIÓN
-    // ============================================
     function openDeleteCourse(id, name) {
         currentDeleteCourseId = id;
         document.getElementById('deleteCourseName').textContent = name;
-        
-        const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('deleteCourseModal')).show();
     }
 
-    // ============================================
-    // ELIMINAR CURSO (CON CSRF)
-    // ============================================
     document.getElementById('confirmDeleteCourseBtn').addEventListener('click', async function() {
         if (!currentDeleteCourseId) return;
 
         try {
             const response = await fetch(`/api/courses/${currentDeleteCourseId}/`, {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': getCSRFToken()  // ← CSRF para DELETE
-                }
+                headers: { 'X-CSRFToken': getCSRFToken() }
             });
 
-            if (!response.ok) {
-                throw new Error('Error al eliminar el curso');
-            }
+            if (!response.ok) throw new Error('Error al eliminar');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal')).hide();
             await loadCourses();
             showToast('✅ Curso eliminado exitosamente.', 'success');
         } catch (error) {
@@ -318,7 +270,6 @@
         }
     });
 
-    // INICIALIZAR
     document.addEventListener('DOMContentLoaded', async function() {
         await loadTeachersForSelects();
         await loadCourses();

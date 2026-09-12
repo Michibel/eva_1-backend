@@ -1,10 +1,10 @@
 # academic/views.py
-# Vistas del proyecto con todas las páginas
+# Vistas del proyecto con Dashboard
 
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Teacher, Student, Course, StudentCourse
-from .serializer import (
+from .serializers import (
     TeacherSerializer, 
     StudentSerializer, 
     CourseSerializer, 
@@ -43,21 +43,21 @@ class StudentCourseViewSet(viewsets.ModelViewSet):
 # VISTAS DE LA WEB (HTML)
 # ============================================
 
-def home_view(request):
-    """Página de inicio"""
-    return render(request, 'academic/base.html')
+def dashboard_view(request):
+    """Dashboard principal con estadísticas"""
+    return render(request, 'academic/dashboard.html')
 
 
 def teachers_view(request):
-    """Página de gestión de profesores con CRUD"""
+    """Gestión de profesores con CRUD"""
     return render(request, 'academic/teachers.html')
 
 
 def courses_view(request):
-    """Página de gestión de cursos con CRUD"""
+    """Gestión de cursos con CRUD"""
     return render(request, 'academic/courses.html')
 
 
 def students_view(request):
-    """Página de gestión de estudiantes con CRUD"""
+    """Gestión de estudiantes con CRUD y asignación de cursos"""
     return render(request, 'academic/students.html')

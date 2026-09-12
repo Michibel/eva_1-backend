@@ -1,59 +1,60 @@
 <!-- templates/academic/students.html -->
-<!-- Página de gestión de estudiantes con asignación de cursos -->
+<!-- Gestión de estudiantes con CRUD completo y asignación de cursos -->
 
 {% extends 'academic/base.html' %}
 
+{% block title %}Estudiantes - Sistema Académico{% endblock %}
+{% block page_title %}👨‍🎓 Gestión de Estudiantes{% endblock %}
+{% block breadcrumb %}Inicio / Estudiantes{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>👨‍🎓 Gestión de Estudiantes</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createStudentModal">
-        <i class="fas fa-plus"></i> Nuevo Estudiante
-    </button>
+<div class="content-card">
+    <div class="content-card-header">
+        <h3><i class="fas fa-user-graduate"></i> Lista de Estudiantes</h3>
+        <button class="btn-modern btn-success-modern" data-bs-toggle="modal" data-bs-target="#createStudentModal">
+            <i class="fas fa-plus"></i> Nuevo Estudiante
+        </button>
+    </div>
+
+    <table class="table-modern" id="students-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Cursos Inscritos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="students-list">
+            <tr>
+                <td colspan="5" class="text-center">⏳ Cargando datos...</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
-<!-- Tabla de estudiantes -->
-<table class="table table-striped table-bordered" id="students-table">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Cursos Inscritos</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody id="students-list">
-        <tr>
-            <td colspan="5" class="text-center">⏳ Cargando datos...</td>
-        </tr>
-    </tbody>
-</table>
-
-<!-- ============================================ -->
 <!-- MODAL: CREAR ESTUDIANTE -->
-<!-- ============================================ -->
 <div class="modal fade" id="createStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Crear Nuevo Estudiante</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Crear Nuevo Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="createStudentForm">
-                    <div class="mb-3">
-                        <label for="createStudentFirstName" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="createStudentFirstName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="createStudentLastName" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="createStudentLastName" required>
-                    </div>
-                </form>
+                <div class="mb-3">
+                    <label for="createStudentFirstName" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="createStudentFirstName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="createStudentLastName" class="form-label">Apellido</label>
+                    <input type="text" class="form-control" id="createStudentLastName" required>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="saveStudentBtn">
+                <button type="button" class="btn-modern btn-success-modern" id="saveStudentBtn">
                     <i class="fas fa-save"></i> Guardar
                 </button>
             </div>
@@ -61,32 +62,28 @@
     </div>
 </div>
 
-<!-- ============================================ -->
 <!-- MODAL: EDITAR ESTUDIANTE -->
-<!-- ============================================ -->
 <div class="modal fade" id="editStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Editar Estudiante</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="editStudentForm">
-                    <input type="hidden" id="editStudentId">
-                    <div class="mb-3">
-                        <label for="editStudentFirstName" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="editStudentFirstName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editStudentLastName" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="editStudentLastName" required>
-                    </div>
-                </form>
+                <input type="hidden" id="editStudentId">
+                <div class="mb-3">
+                    <label for="editStudentFirstName" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="editStudentFirstName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editStudentLastName" class="form-label">Apellido</label>
+                    <input type="text" class="form-control" id="editStudentLastName" required>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="updateStudentBtn">
+                <button type="button" class="btn-modern btn-primary-modern" id="updateStudentBtn">
                     <i class="fas fa-save"></i> Actualizar
                 </button>
             </div>
@@ -94,40 +91,36 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- MODAL: ASIGNAR CURSO A ESTUDIANTE (NUEVO) -->
-<!-- ============================================ -->
+<!-- MODAL: ASIGNAR CURSO -->
 <div class="modal fade" id="assignCourseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">📚 Asignar Curso a Estudiante</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="fas fa-book"></i> Asignar Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="assignCourseForm">
-                    <input type="hidden" id="assignStudentId">
-                    <div class="mb-3">
-                        <label class="form-label">Estudiante</label>
-                        <p class="form-control-static" id="assignStudentName"><strong>Cargando...</strong></p>
-                    </div>
-                    <div class="mb-3">
-                        <label for="assignCourseSelect" class="form-label">Seleccionar Curso</label>
-                        <select class="form-control" id="assignCourseSelect" required>
-                            <option value="">Seleccione un curso...</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="assignedCoursesContainer">
-                        <label class="form-label">Cursos ya asignados:</label>
-                        <ul class="list-group" id="assignedCoursesList">
-                            <li class="list-group-item">Cargando cursos...</li>
-                        </ul>
-                    </div>
-                </form>
+                <input type="hidden" id="assignStudentId">
+                <div class="mb-3">
+                    <label class="form-label">Estudiante</label>
+                    <p id="assignStudentName" class="form-control-static"><strong>Cargando...</strong></p>
+                </div>
+                <div class="mb-3">
+                    <label for="assignCourseSelect" class="form-label">Seleccionar Curso</label>
+                    <select class="form-select" id="assignCourseSelect" required>
+                        <option value="">Seleccione un curso...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cursos ya asignados:</label>
+                    <ul class="list-group" id="assignedCoursesList">
+                        <li class="list-group-item">Cargando...</li>
+                    </ul>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" id="assignCourseBtn">
+                <button type="button" class="btn-modern btn-success-modern" id="assignCourseBtn">
                     <i class="fas fa-plus"></i> Asignar Curso
                 </button>
             </div>
@@ -135,15 +128,13 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- MODAL: CONFIRMAR ELIMINACIÓN DE ESTUDIANTE -->
-<!-- ============================================ -->
+<!-- MODAL: ELIMINAR ESTUDIANTE -->
 <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-danger">⚠️ Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>¿Estás seguro de que deseas eliminar al estudiante <strong id="deleteStudentName"></strong>?</p>
@@ -151,7 +142,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">
+                <button type="button" class="btn-modern btn-danger-modern" id="confirmDeleteStudentBtn">
                     <i class="fas fa-trash"></i> Eliminar
                 </button>
             </div>
@@ -159,23 +150,21 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- MODAL: CONFIRMAR ELIMINACIÓN DE INSCRIPCIÓN (NUEVO) -->
-<!-- ============================================ -->
+<!-- MODAL: DESINSCRIBIR -->
 <div class="modal fade" id="deleteEnrollmentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-danger">⚠️ Desinscribir Estudiante</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle"></i> Desinscribir Estudiante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas desinscribir al estudiante <strong id="deleteEnrollmentStudentName"></strong> del curso <strong id="deleteEnrollmentCourseName"></strong>?</p>
+                <p>¿Estás seguro de que deseas desinscribir a <strong id="deleteEnrollmentStudentName"></strong> del curso <strong id="deleteEnrollmentCourseName"></strong>?</p>
                 <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteEnrollmentBtn">
+                <button type="button" class="btn-modern btn-danger-modern" id="confirmDeleteEnrollmentBtn">
                     <i class="fas fa-trash"></i> Desinscribir
                 </button>
             </div>
@@ -183,61 +172,36 @@
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- JAVASCRIPT CRUD + ASIGNACIÓN DE CURSOS -->
-<!-- ============================================ -->
 <script>
-    // ============================================
-    // VARIABLES GLOBALES
-    // ============================================
     let currentDeleteStudentId = null;
     let currentDeleteEnrollmentId = null;
     let currentAssignStudentId = null;
     let allCourses = [];
-    let allEnrollments = [];
 
-    // ============================================
-    // FUNCIÓN: OBTENER CSRF TOKEN (desde base.html)
-    // ============================================
-    // Ya existe en base.html: getCSRFToken(), getHeaders(), showToast()
-
-    // ============================================
-    // FUNCIÓN: CARGAR ESTUDIANTES
-    // ============================================
     async function loadStudents() {
         const tbody = document.getElementById('students-list');
         try {
-            // Obtener estudiantes
             const responseStudents = await fetch('/api/students/');
-            if (!responseStudents.ok) throw new Error(`Error: ${responseStudents.status}`);
             const students = await responseStudents.json();
 
-            // Obtener cursos
             const responseCourses = await fetch('/api/courses/');
             const courses = await responseCourses.json();
 
-            // Obtener inscripciones
             const responseEnrollments = await fetch('/api/enrollments/');
-            allEnrollments = await responseEnrollments.json();
+            const enrollments = await responseEnrollments.json();
 
-            // Crear mapa de cursos
             const coursesMap = {};
             courses.forEach(course => {
                 coursesMap[course.id] = course.name;
             });
 
-            // Crear mapa de inscripciones por estudiante
             const enrollmentsMap = {};
-            allEnrollments.forEach(enrollment => {
-                const studentId = enrollment.student;
-                const courseName = coursesMap[enrollment.course] || 'Curso desconocido';
-                if (!enrollmentsMap[studentId]) {
-                    enrollmentsMap[studentId] = [];
-                }
-                enrollmentsMap[studentId].push({
+            enrollments.forEach(enrollment => {
+                if (!enrollmentsMap[enrollment.student]) enrollmentsMap[enrollment.student] = [];
+                enrollmentsMap[enrollment.student].push({
                     id: enrollment.id,
                     courseId: enrollment.course,
-                    courseName: courseName
+                    courseName: coursesMap[enrollment.course] || 'Curso desconocido'
                 });
             });
 
@@ -250,46 +214,39 @@
 
             students.forEach(student => {
                 const coursesList = enrollmentsMap[student.id] || [];
-                const coursesNames = coursesList.length > 0 ? coursesList.map(c => c.courseName).join(', ') : 'Sin cursos';
-                
+                const coursesHTML = coursesList.length > 0 
+                    ? coursesList.map(c => `<span class="course-badge">${c.courseName}</span>`).join('')
+                    : '<span class="text-muted">Sin cursos</span>';
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${student.id}</td>
+                    <td><strong>${student.id}</strong></td>
                     <td>${student.first_name}</td>
                     <td>${student.last_name}</td>
+                    <td>${coursesHTML}</td>
                     <td>
-                        <span class="badge bg-info">${coursesList.length}</span> 
-                        ${coursesNames}
-                    </td>
-                    <td>
-                        <div class="table-actions">
-                            <button class="btn btn-sm btn-edit" onclick="openEditStudent(${student.id}, '${student.first_name}', '${student.last_name}')" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-primary" onclick="openAssignCourse(${student.id}, '${student.first_name} ${student.last_name}')" title="Asignar Curso">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-sm btn-delete" onclick="openDeleteStudent(${student.id}, '${student.first_name} ${student.last_name}')" title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <button class="btn-icon btn-edit" onclick="openEditStudent(${student.id}, '${student.first_name}', '${student.last_name}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-assign" onclick="openAssignCourse(${student.id}, '${student.first_name} ${student.last_name}')" title="Asignar Curso">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="openDeleteStudent(${student.id}, '${student.first_name} ${student.last_name}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         } catch (error) {
             console.error('Error:', error);
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">❌ Error al cargar los datos: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">❌ Error al cargar los datos.</td></tr>`;
         }
     }
 
-    // ============================================
-    // FUNCIÓN: CARGAR CURSOS PARA ASIGNAR
-    // ============================================
     async function loadCoursesForAssign() {
         try {
             const response = await fetch('/api/courses/');
-            if (!response.ok) throw new Error('Error al cargar cursos');
             allCourses = await response.json();
             
             const select = document.getElementById('assignCourseSelect');
@@ -303,40 +260,26 @@
             });
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al cargar cursos: ' + error.message, 'error');
         }
     }
 
-    // ============================================
-    // FUNCIÓN: ABRIR MODAL ASIGNAR CURSO
-    // ============================================
     async function openAssignCourse(studentId, studentName) {
         currentAssignStudentId = studentId;
         document.getElementById('assignStudentId').value = studentId;
         document.getElementById('assignStudentName').innerHTML = `<strong>${studentName}</strong> (ID: ${studentId})`;
         
-        // Cargar cursos disponibles
         await loadCoursesForAssign();
-        
-        // Mostrar cursos ya asignados
         await loadAssignedCourses(studentId);
         
-        const modal = new bootstrap.Modal(document.getElementById('assignCourseModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('assignCourseModal')).show();
     }
 
-    // ============================================
-    // FUNCIÓN: CARGAR CURSOS ASIGNADOS
-    // ============================================
     async function loadAssignedCourses(studentId) {
         const list = document.getElementById('assignedCoursesList');
         try {
-            // Obtener inscripciones actualizadas
             const response = await fetch('/api/enrollments/');
-            if (!response.ok) throw new Error('Error al cargar inscripciones');
             const enrollments = await response.json();
             
-            // Filtrar inscripciones del estudiante
             const studentEnrollments = enrollments.filter(e => e.student === studentId);
             
             if (studentEnrollments.length === 0) {
@@ -344,7 +287,6 @@
                 return;
             }
             
-            // Obtener nombres de cursos
             const responseCourses = await fetch('/api/courses/');
             const courses = await responseCourses.json();
             const coursesMap = {};
@@ -357,7 +299,7 @@
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
                 li.innerHTML = `
                     <span>${courseName}</span>
-                    <button class="btn btn-sm btn-danger" onclick="deleteEnrollment(${enrollment.id}, ${studentId}, '${courseName}')">
+                    <button class="btn-icon btn-delete" onclick="deleteEnrollment(${enrollment.id}, ${studentId}, '${courseName}')">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
@@ -365,19 +307,16 @@
             });
         } catch (error) {
             console.error('Error:', error);
-            list.innerHTML = `<li class="list-group-item text-danger">❌ Error al cargar cursos asignados</li>`;
+            list.innerHTML = `<li class="list-group-item text-danger">❌ Error al cargar cursos</li>`;
         }
     }
 
-    // ============================================
-    // FUNCIÓN: ASIGNAR CURSO A ESTUDIANTE
-    // ============================================
     document.getElementById('assignCourseBtn').addEventListener('click', async function() {
         const studentId = document.getElementById('assignStudentId').value;
         const courseId = document.getElementById('assignCourseSelect').value;
 
         if (!studentId || !courseId) {
-            showToast('⚠️ Por favor, selecciona un curso.', 'warning');
+            showToast('Por favor, selecciona un curso.', 'warning');
             return;
         }
 
@@ -393,36 +332,25 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                // Error específico si el estudiante ya está inscrito
                 if (errorData.student && errorData.course) {
                     throw new Error('Este estudiante ya está inscrito en este curso.');
                 }
                 throw new Error(errorData.detail || 'Error al asignar curso');
             }
 
-            // Recargar cursos asignados
             await loadAssignedCourses(parseInt(studentId));
-            
-            // Recargar lista de estudiantes
             await loadStudents();
-            
-            // Limpiar select
             document.getElementById('assignCourseSelect').value = '';
-            
             showToast('✅ Curso asignado exitosamente.', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showToast('❌ Error al asignar curso: ' + error.message, 'error');
+            showToast('❌ Error: ' + error.message, 'error');
         }
     });
 
-    // ============================================
-    // FUNCIÓN: ELIMINAR INSCRIPCIÓN
-    // ============================================
     function deleteEnrollment(enrollmentId, studentId, courseName) {
         currentDeleteEnrollmentId = enrollmentId;
         
-        // Obtener nombre del estudiante
         fetch('/api/students/')
             .then(r => r.json())
             .then(students => {
@@ -430,41 +358,25 @@
                 const studentName = student ? `${student.first_name} ${student.last_name}` : 'Estudiante';
                 document.getElementById('deleteEnrollmentStudentName').textContent = studentName;
                 document.getElementById('deleteEnrollmentCourseName').textContent = courseName;
-            })
-            .catch(() => {
-                document.getElementById('deleteEnrollmentStudentName').textContent = 'Estudiante';
-                document.getElementById('deleteEnrollmentCourseName').textContent = courseName;
             });
         
-        const modal = new bootstrap.Modal(document.getElementById('deleteEnrollmentModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('deleteEnrollmentModal')).show();
     }
 
-    // ============================================
-    // CONFIRMAR ELIMINAR INSCRIPCIÓN
-    // ============================================
     document.getElementById('confirmDeleteEnrollmentBtn').addEventListener('click', async function() {
         if (!currentDeleteEnrollmentId) return;
 
         try {
             const response = await fetch(`/api/enrollments/${currentDeleteEnrollmentId}/`, {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': getCSRFToken()
-                }
+                headers: { 'X-CSRFToken': getCSRFToken() }
             });
 
-            if (!response.ok) {
-                throw new Error('Error al eliminar la inscripción');
-            }
+            if (!response.ok) throw new Error('Error al eliminar la inscripción');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEnrollmentModal'));
-            modal.hide();
-
-            // Recargar datos
+            bootstrap.Modal.getInstance(document.getElementById('deleteEnrollmentModal')).hide();
             await loadStudents();
             
-            // Si el modal de asignación está abierto, recargar cursos asignados
             const assignModal = document.getElementById('assignCourseModal');
             if (assignModal.classList.contains('show')) {
                 await loadAssignedCourses(currentAssignStudentId);
@@ -477,15 +389,12 @@
         }
     });
 
-    // ============================================
-    // FUNCIÓN: CREAR ESTUDIANTE
-    // ============================================
     document.getElementById('saveStudentBtn').addEventListener('click', async function() {
         const firstName = document.getElementById('createStudentFirstName').value.trim();
         const lastName = document.getElementById('createStudentLastName').value.trim();
 
         if (!firstName || !lastName) {
-            showToast('⚠️ Por favor, completa todos los campos.', 'warning');
+            showToast('Por favor, completa todos los campos.', 'warning');
             return;
         }
 
@@ -496,14 +405,9 @@
                 body: JSON.stringify({ first_name: firstName, last_name: lastName })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al crear el estudiante');
-            }
+            if (!response.ok) throw new Error('Error al crear el estudiante');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createStudentModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('createStudentModal')).hide();
             document.getElementById('createStudentFirstName').value = '';
             document.getElementById('createStudentLastName').value = '';
 
@@ -515,28 +419,20 @@
         }
     });
 
-    // ============================================
-    // FUNCIÓN: ABRIR MODAL DE EDICIÓN
-    // ============================================
     function openEditStudent(id, firstName, lastName) {
         document.getElementById('editStudentId').value = id;
         document.getElementById('editStudentFirstName').value = firstName;
         document.getElementById('editStudentLastName').value = lastName;
-        
-        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('editStudentModal')).show();
     }
 
-    // ============================================
-    // FUNCIÓN: ACTUALIZAR ESTUDIANTE
-    // ============================================
     document.getElementById('updateStudentBtn').addEventListener('click', async function() {
         const id = document.getElementById('editStudentId').value;
         const firstName = document.getElementById('editStudentFirstName').value.trim();
         const lastName = document.getElementById('editStudentLastName').value.trim();
 
         if (!firstName || !lastName) {
-            showToast('⚠️ Por favor, completa todos los campos.', 'warning');
+            showToast('Por favor, completa todos los campos.', 'warning');
             return;
         }
 
@@ -547,14 +443,9 @@
                 body: JSON.stringify({ first_name: firstName, last_name: lastName })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Error al actualizar');
-            }
+            if (!response.ok) throw new Error('Error al actualizar');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('editStudentModal')).hide();
             await loadStudents();
             showToast('✅ Estudiante actualizado exitosamente.', 'success');
         } catch (error) {
@@ -563,38 +454,24 @@
         }
     });
 
-    // ============================================
-    // FUNCIÓN: ABRIR MODAL DE ELIMINACIÓN
-    // ============================================
     function openDeleteStudent(id, name) {
         currentDeleteStudentId = id;
         document.getElementById('deleteStudentName').textContent = name;
-        
-        const modal = new bootstrap.Modal(document.getElementById('deleteStudentModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('deleteStudentModal')).show();
     }
 
-    // ============================================
-    // FUNCIÓN: ELIMINAR ESTUDIANTE
-    // ============================================
     document.getElementById('confirmDeleteStudentBtn').addEventListener('click', async function() {
         if (!currentDeleteStudentId) return;
 
         try {
             const response = await fetch(`/api/students/${currentDeleteStudentId}/`, {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': getCSRFToken()
-                }
+                headers: { 'X-CSRFToken': getCSRFToken() }
             });
 
-            if (!response.ok) {
-                throw new Error('Error al eliminar el estudiante');
-            }
+            if (!response.ok) throw new Error('Error al eliminar');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteStudentModal'));
-            modal.hide();
-
+            bootstrap.Modal.getInstance(document.getElementById('deleteStudentModal')).hide();
             await loadStudents();
             showToast('✅ Estudiante eliminado exitosamente.', 'success');
         } catch (error) {
@@ -603,9 +480,6 @@
         }
     });
 
-    // ============================================
-    // INICIALIZAR
-    // ============================================
     document.addEventListener('DOMContentLoaded', loadStudents);
 </script>
 {% endblock %}
