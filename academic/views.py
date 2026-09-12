@@ -4,7 +4,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Teacher, Student, Course, StudentCourse
-from .serializers import (
+from .serializer import (
     TeacherSerializer, 
     StudentSerializer, 
     CourseSerializer, 
